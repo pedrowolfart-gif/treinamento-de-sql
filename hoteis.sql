@@ -77,3 +77,26 @@ SELECT
 FROM acomodacoes a
 JOIN categorias c ON a.categoria_id = c.id
 ORDER BY valor_diario_ajustado DESC;
+
+create or replace view vw_reservas_confirmadas as select
+h.nome as hospedes_nome,
+h.cpf,
+a.numero_quarto,
+ir.quantidade_diarias,
+r.data_criacao
+from reservas r join hospedes h on r.hospedes_id = h.id
+join itens_reserva ir on ir.reserva_id = r.id
+join acomodacoes a on ir.acomodacao_id = a.id
+where r.status = 'confirmado';
+
+create or replace view vw_hospedes_vip as select 
+h.nome as hospedes_nome,
+count (r.id) as qtd_reservas_confirmadas,
+sum ((ir.valor_diaria_aplicado * ir.quantidade_diarias) + ir.taxa_turismo) as total_investido
+from hospedes h
+join reservas r on r.hospedes_id = h.id
+join itens_reserva ir on ir.reserva_id = r.id
+where r.status = 'Confirmada'
+group by h.id, h.nome
+having sum ((ir.valor_diaria_aplicado * ir.quantidade_diarias) + ir.taxa_turismo) > 1000.00;
+
